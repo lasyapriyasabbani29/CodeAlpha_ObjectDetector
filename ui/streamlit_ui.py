@@ -216,15 +216,23 @@ def _run_stream(settings: dict[str, object], stats_slot) -> None:
 
 def main() -> None:
     PATHS.ensure()
-    st.set_page_config(page_title="Real-Time Object Detection and Tracking", layout="wide")
+
+    st.set_page_config(
+        page_title="Real-Time Object Detection and Tracking",
+        layout="wide"
+    )
+
     st.markdown(STREAMLIT_CSS, unsafe_allow_html=True)
 
     st.title("Real-Time Object Detection and Tracking")
+
     settings = _render_sidebar()
 
     left, right = st.columns([3.2, 1.2], gap="large")
+
     stats_slot = right.empty()
-        with left:
+
+    with left:
 
         if settings["run"]:
 
@@ -244,6 +252,7 @@ def main() -> None:
                 _run_stream(settings, stats_slot)
 
         else:
+
             st.markdown(
                 '<div class="status-card"><strong>Ready</strong><br>YOLO11 COCO detection with ByteTrack IDs.</div>',
                 unsafe_allow_html=True,
@@ -256,15 +265,20 @@ def main() -> None:
             )
 
     if not settings["run"]:
+
         with stats_slot.container():
             _render_stats(None)
 
-    
+
+def _placeholder_frame():
     import numpy as np
 
     image = np.zeros((720, 1280, 3), dtype=np.uint8)
+
     image[:] = (9, 13, 20)
+
     cv2.rectangle(image, (32, 32), (1248, 688), (42, 52, 70), 2)
+
     cv2.putText(
         image,
         "LIVE FEED",
@@ -275,6 +289,7 @@ def main() -> None:
         3,
         cv2.LINE_AA,
     )
+
     cv2.putText(
         image,
         "Start detection from the sidebar",
@@ -285,4 +300,5 @@ def main() -> None:
         1,
         cv2.LINE_AA,
     )
+
     return image
