@@ -9,13 +9,21 @@ import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import av
 class VideoProcessor(VideoTransformerBase):
+
     def __init__(self):
+
         self.pipeline = TrackingPipeline(
             config=DetectionConfig(
                 model_name="yolo11n.pt",
                 confidence=0.35,
                 iou=0.55,
                 imgsz=640,
+                device=None,
+                half=False,
+                augment=False,
+                agnostic_nms=False,
+                classes=None,
+                low_light=False,
             ),
             source_name="webcam",
             enable_line=True,
@@ -25,12 +33,21 @@ class VideoProcessor(VideoTransformerBase):
             save_output_video=False,
         )
 
-    def transform(self, frame):
+    def recv(self, frame):
+
         img = frame.to_ndarray(format="bgr24")
 
-        result = self.pipeline.process_frame(img, source_fps=30)
+        result = self.pipeline.process_frame(
+            img,
+            source_fps=30
+        )
 
-        return result.annotated_frame
+        annotated = result.annotated_frame
+
+        return av.VideoFrame.from_ndarray(
+            annotated,
+            format="bgr24"
+        )
 
 from config import AVAILABLE_MODELS, DetectionConfig, PATHS
 from tracker.tracking_pipeline import TrackingPipeline
