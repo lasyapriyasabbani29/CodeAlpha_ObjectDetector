@@ -6,6 +6,31 @@ from pathlib import Path
 import cv2
 import pandas as pd
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+import av
+class VideoProcessor(VideoTransformerBase):
+    def __init__(self):
+        self.pipeline = TrackingPipeline(
+            config=DetectionConfig(
+                model_name="yolo11n.pt",
+                confidence=0.35,
+                iou=0.55,
+                imgsz=640,
+            ),
+            source_name="webcam",
+            enable_line=True,
+            enable_zone=True,
+            enable_voice=False,
+            enable_screenshots=False,
+            save_output_video=False,
+        )
+
+    def transform(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+
+        result = self.pipeline.process_frame(img, source_fps=30)
+
+        return result.annotated_frame
 
 from config import AVAILABLE_MODELS, DetectionConfig, PATHS
 from tracker.tracking_pipeline import TrackingPipeline
@@ -201,7 +226,21 @@ def main() -> None:
     stats_slot = right.empty()
     with left:
         if settings["run"]:
-            _run_stream(settings, stats_slot)
+
+    if settings["source_type"] == "Webcam":
+
+        webrtc_streamer(
+            key="object-detection",
+            video_processor_factory=VideoProcessor,
+            media_stream_constraints={
+                "video": True,
+                "audio": False,
+            },
+            async_processing=True,
+        )
+
+    else:
+        _run_stream(settings, stats_slot)
         else:
             st.markdown(
                 '<div class="status-card"><strong>Ready</strong><br>YOLO11 COCO detection with ByteTrack IDs.</div>',
