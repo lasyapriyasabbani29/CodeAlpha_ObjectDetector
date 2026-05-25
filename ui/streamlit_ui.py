@@ -6,6 +6,7 @@ from pathlib import Path
 import cv2
 import pandas as pd
 import streamlit as st
+from ultralytics import YOLO
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import av
 class VideoProcessor(VideoTransformerBase):
