@@ -224,29 +224,36 @@ def main() -> None:
 
     left, right = st.columns([3.2, 1.2], gap="large")
     stats_slot = right.empty()
-    with left:
-        if settings["run"]:
+with left:
 
-    if settings["source_type"] == "Webcam":
+    if settings["run"]:
 
-        webrtc_streamer(
-            key="object-detection",
-            video_processor_factory=VideoProcessor,
-            media_stream_constraints={
-                "video": True,
-                "audio": False,
-            },
-            async_processing=True,
-        )
+        if settings["source_type"] == "Webcam":
+
+            webrtc_streamer(
+                key="object-detection",
+                video_processor_factory=VideoProcessor,
+                media_stream_constraints={
+                    "video": True,
+                    "audio": False,
+                },
+                async_processing=True,
+            )
+
+        else:
+            _run_stream(settings, stats_slot)
 
     else:
-        _run_stream(settings, stats_slot)
-        else:
-            st.markdown(
-                '<div class="status-card"><strong>Ready</strong><br>YOLO11 COCO detection with ByteTrack IDs.</div>',
-                unsafe_allow_html=True,
-            )
-            st.image(_placeholder_frame(), channels="RGB", use_container_width=True)
+        st.markdown(
+            '<div class="status-card"><strong>Ready</strong><br>YOLO11 COCO detection with ByteTrack IDs.</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.image(
+            _placeholder_frame(),
+            channels="RGB",
+            use_container_width=True
+        )
     if not settings["run"]:
         with stats_slot.container():
             _render_stats(None)
