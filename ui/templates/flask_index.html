@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Object Detection and Tracking</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='flask.css') }}">
+</head>
+<body>
+  <main class="layout">
+    <aside class="sidebar">
+      <h1>Vision Control</h1>
+      <form id="control-form">
+        <label>Source</label>
+        <input name="source" value="0" placeholder="0, video path, RTSP URL">
+
+        <label>Uploaded video</label>
+        <select id="upload-select">
+          <option value="">Use source field</option>
+          {% for upload in uploads %}
+          <option value="{{ upload.path }}">{{ upload.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Model</label>
+        <select name="model">
+          {% for label, model in models.items() %}
+          <option value="{{ model }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+
+        <div class="grid">
+          <div>
+            <label>Confidence</label>
+            <input name="conf" type="number" min="0.1" max="0.85" step="0.01" value="0.35">
+          </div>
+          <div>
+            <label>NMS IoU</label>
+            <input name="iou" type="number" min="0.3" max="0.9" step="0.01" value="0.55">
+          </div>
+        </div>
+
+        <label>Image size</label>
+        <select name="imgsz">
+          <option>640</option>
+          <option>768</option>
+          <option selected>960</option>
+          <option>1280</option>
+        </select>
+
+        <div class="checks">
+          <label><input type="checkbox" name="line" checked> Line crossing</label>
+          <label><input type="checkbox" name="zone" checked> Restricted zone</label>
+          <label><input type="checkbox" name="save_video" checked> Save video</label>
+          <label><input type="checkbox" name="screenshots"> Screenshots</label>
+          <label><input type="checkbox" name="voice"> Voice alerts</label>
+          <label><input type="checkbox" name="low_light"> Low light</label>
+        </div>
+
+        <button type="submit">Start Stream</button>
+      </form>
+
+      <form action="/upload" method="post" enctype="multipart/form-data" class="upload">
+        <input type="file" name="video" accept="video/*">
+        <button type="submit">Upload Video</button>
+      </form>
+    </aside>
+
+    <section class="stage">
+      <div class="video-shell">
+        <img id="video" alt="Live object detection stream">
+      </div>
+      <div class="analytics">
+        <div class="metric"><span>FPS</span><strong id="fps">0.0</strong></div>
+        <div class="metric"><span>Visible</span><strong id="visible">0</strong></div>
+        <div class="metric"><span>Unique IDs</span><strong id="unique">0</strong></div>
+        <div class="metric"><span>Zone Active</span><strong id="zone">0</strong></div>
+      </div>
+      <div class="panel">
+        <h2>Live Counts</h2>
+        <pre id="counts">{}</pre>
+      </div>
+      <div class="panel">
+        <h2>Events</h2>
+        <ul id="events"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("control-form");
+    const uploadSelect = document.getElementById("upload-select");
+    const video = document.getElementById("video");
+    const fps = document.getElementById("fps");
+    const visible = document.getElementById("visible");
+    const unique = document.getElementById("unique");
+    const zone = document.getElementById("zone");
+    const counts = document.getElementById("counts");
+    const events = document.getElementById("events");
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const params = new URLSearchParams(new FormData(form));
+      if (uploadSelect.value) {
+        params.set("source", uploadSelect.value);
+      }
+      for (const checkbox of form.querySelectorAll("input[type='checkbox']")) {
+        params.set(checkbox.name, checkbox.checked ? "1" : "0");
+      }
+      video.src = `/video_feed?${params.toString()}&t=${Date.now()}`;
+    });
+
+    async function refreshStats() {
+      const response = await fetch("/stats");
+      const data = await response.json();
+      fps.textContent = Number(data.fps || 0).toFixed(1);
+      visible.textContent = data.current_objects || 0;
+      unique.textContent = data.unique_objects || 0;
+      zone.textContent = data.restricted_active || 0;
+      counts.textContent = JSON.stringify(data.frame_counts || {}, null, 2);
+      events.innerHTML = "";
+      for (const item of (data.events || []).slice(0, 6)) {
+        const li = document.createElement("li");
+        li.textContent = item;
+        events.appendChild(li);
+      }
+    }
+    setInterval(refreshStats, 800);
+  </script>
+</body>
+</html>
