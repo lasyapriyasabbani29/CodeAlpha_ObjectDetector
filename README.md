@@ -11,6 +11,8 @@ Default stack:
 
 The COCO model detects all 80 standard classes, including people, cars, bicycles, motorcycles, trucks, dogs, cats, backpacks, handbags, suitcases, bottles, cell phones, chairs, laptops, TVs, traffic lights, and more.
 
+live model: https://codealphaobjectdetector-usce78iqglwyvgikg7fajf.streamlit.app/
+
 ## Project Structure
 
 ```text
