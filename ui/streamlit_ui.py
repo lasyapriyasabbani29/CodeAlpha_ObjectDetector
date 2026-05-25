@@ -224,42 +224,42 @@ def main() -> None:
 
     left, right = st.columns([3.2, 1.2], gap="large")
     stats_slot = right.empty()
-with left:
+        with left:
 
-    if settings["run"]:
+        if settings["run"]:
 
-        if settings["source_type"] == "Webcam":
+            if settings["source_type"] == "Webcam":
 
-            webrtc_streamer(
-                key="object-detection",
-                video_processor_factory=VideoProcessor,
-                media_stream_constraints={
-                    "video": True,
-                    "audio": False,
-                },
-                async_processing=True,
-            )
+                webrtc_streamer(
+                    key="object-detection",
+                    video_processor_factory=VideoProcessor,
+                    media_stream_constraints={
+                        "video": True,
+                        "audio": False,
+                    },
+                    async_processing=True,
+                )
+
+            else:
+                _run_stream(settings, stats_slot)
 
         else:
-            _run_stream(settings, stats_slot)
+            st.markdown(
+                '<div class="status-card"><strong>Ready</strong><br>YOLO11 COCO detection with ByteTrack IDs.</div>',
+                unsafe_allow_html=True,
+            )
 
-    else:
-        st.markdown(
-            '<div class="status-card"><strong>Ready</strong><br>YOLO11 COCO detection with ByteTrack IDs.</div>',
-            unsafe_allow_html=True,
-        )
+            st.image(
+                _placeholder_frame(),
+                channels="RGB",
+                use_container_width=True
+            )
 
-        st.image(
-            _placeholder_frame(),
-            channels="RGB",
-            use_container_width=True
-        )
     if not settings["run"]:
         with stats_slot.container():
             _render_stats(None)
 
-
-def _placeholder_frame():
+    
     import numpy as np
 
     image = np.zeros((720, 1280, 3), dtype=np.uint8)
